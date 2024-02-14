@@ -1,1 +1,9 @@
-port: "8000"
+port: "___"
+
+db:
+  username: "_____"
+  password: "_____"
+  host: "_____"
+  port: "_____"
+  dbname: "_____"
+  sslmode: "_____"
