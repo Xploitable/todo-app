@@ -7,3 +7,7 @@ db:
   port: "_____"
   dbname: "_____"
   sslmode: "_____"
+
+app:
+  salt: "_____"
+  signinkey: "_____"
