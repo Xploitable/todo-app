@@ -2,9 +2,11 @@ package repository
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Xploitable/todo-app"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 )
 
 type TodoListPostgres struct {
@@ -36,7 +38,7 @@ func (r *TodoListPostgres) Create(userId int, list todo.TodoList) (int, error) {
 		tx.Rollback()
 		return 0, err
 	}
-
+	//return id and end transaction
 	return id, tx.Commit()
 }
 
@@ -56,4 +58,41 @@ func (r *TodoListPostgres) GetById(userId, listId int) (todo.TodoList, error) {
 
 	err := r.db.Get(&list, query, userId, listId)
 	return list, err
+}
+
+func (r *TodoListPostgres) Delete(userId, listId int) error {
+	query := fmt.Sprintf("DELETE FROM %s tl USING %s ul WHERE tl.id=ul.list_id AND ul.user_id=$1 AND ul.list_id=$2",
+		TODO_LISTS_TABLE, USERS_LISTS_TABLE)
+	_, err := r.db.Exec(query, userId, listId)
+	return err
+}
+
+func (r *TodoListPostgres) Update(userId, listId int, input todo.UpdateListInput) error {
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+	argId := 1
+
+	if input.Title != nil {
+		setValues = append(setValues, fmt.Sprintf("title=$%d", argId))
+		args = append(args, *input.Title)
+		argId++
+	}
+
+	if input.Description != nil {
+		setValues = append(setValues, fmt.Sprintf("description=$%d", argId))
+		args = append(args, *input.Description)
+		argId++
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+	query := fmt.Sprintf("UPDATE %s tl SET %s FROM %s ul WHERE tl.id = ul.list_id AND ul.list_id=$%d AND ul.user_id=$%d",
+		TODO_LISTS_TABLE, setQuery, USERS_LISTS_TABLE, argId, argId+1)
+	args = append(args, listId, userId)
+
+	//for debug
+	logrus.Debugf("updateQuery: %s", query)
+	logrus.Debugf("args: %s", args)
+
+	_, err := r.db.Exec(query, args...)
+	return err
 }
