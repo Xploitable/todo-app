@@ -6,7 +6,7 @@ import (
 
 	"github.com/Xploitable/todo-app"
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
+	//"github.com/sirupsen/logrus"
 )
 
 type TodoListPostgres struct {
@@ -90,8 +90,8 @@ func (r *TodoListPostgres) Update(userId, listId int, input todo.UpdateListInput
 	args = append(args, listId, userId)
 
 	//for debug
-	logrus.Debugf("updateQuery: %s", query)
-	logrus.Debugf("args: %s", args)
+	//logrus.Debugf("updateQuery: %s", query)
+	//logrus.Debugf("args: %s", args)
 
 	_, err := r.db.Exec(query, args...)
 	return err
