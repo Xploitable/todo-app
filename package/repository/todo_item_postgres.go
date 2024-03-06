@@ -53,3 +53,23 @@ func (r *TodoItemPostgres) GetAll(userId, listId int) ([]todo.TodoItem, error) {
 
 	return items, nil
 }
+
+func (r *TodoItemPostgres) GetById(userId, itemId int) (todo.TodoItem, error) {
+	var item todo.TodoItem
+	query := fmt.Sprintf("SELECT ti.id, ti.title, ti.description, ti.done FROM %s ti INNER JOIN %s li ON li.item_id = ti.id INNER JOIN %s ul ON ul.list_id = li.list_id WHERE ti.id = $1 AND ul.user_id = $2",
+		TODO_ITEMS_TABLE, LISTS_ITEMS_TABLE, USERS_LISTS_TABLE)
+
+	if err := r.db.Get(&item, query, itemId, userId); err != nil {
+		return item, err
+	}
+
+	return item, nil
+}
+
+func (r *TodoItemPostgres) Delete(userId, itemId int) error {
+	query := fmt.Sprintf("DELETE FROM %s ti USING %s li, %s ul WHERE ti.id = li.item_id AND li.list_id = ul.list_id AND ul.user_id = $1 AND ti.id = $2",
+		TODO_ITEMS_TABLE, LISTS_ITEMS_TABLE, USERS_LISTS_TABLE)
+
+	_, err := r.db.Exec(query, userId, itemId)
+	return err
+}
